@@ -17,18 +17,22 @@
 
  # AI uAgents in SwiftClaim
 1️⃣ Claim Assistance AI uAgent (Chatbot) 🤖
+
 Purpose: An interactive AI agent that guides users through the insurance claim process, fetches claim status, and answers queries related to health policies.
+
 How it Works:
-✅ Uses natural language processing (NLP) to understand user queries.
-✅ Retrieves claim status from the blockchain and cross-verifies with ABDM records.
-✅ Facilitates real-time interaction between users and the fraud detection process.
+- ✅ Uses natural language processing (NLP) to understand user queries.
+- ✅ Retrieves claim status from the blockchain and cross-verifies with ABDM records.
+- ✅ Facilitates real-time interaction between users and the fraud detection process.
 
 2️⃣ Medical Data Fetcher AI uAgent 📡
+
 Purpose: A decentralized agent that securely fetches user medical history from ABDM APIs to validate insurance claims.
+
 How it Works:
-✅ Connects to ABDM via secure API calls.
-✅ Cross-checks medical records with insurance claims.
-✅ Ensures privacy-first data retrieval using Fetch.AI’s agent coordination.
+- ✅ Connects to ABDM via secure API calls.
+- ✅ Cross-checks medical records with insurance claims.
+- ✅ Ensures privacy-first data retrieval using Fetch.AI’s agent coordination.
 
 ## 🔍 Project Overview
 
