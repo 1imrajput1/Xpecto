@@ -1,4 +1,4 @@
-# Swift Claim: Revolutionizing Insurance Claims with AI & Blockchain 🚀
+# Swift Claim: Revolutionizing Insurance Claims with AI uAgents & Blockchain 🚀
 
 ![Swift Claim Logo](logo-white-bg.png)
 
@@ -14,6 +14,21 @@
 - [Value Proposition](#value-proposition)
 - [Revenue Model](#revenue-model)
 - [Future Roadmap](#future-roadmap)
+
+ # AI uAgents in SwiftClaim
+1️⃣ Claim Assistance AI uAgent (Chatbot) 🤖
+Purpose: An interactive AI agent that guides users through the insurance claim process, fetches claim status, and answers queries related to health policies.
+How it Works:
+✅ Uses natural language processing (NLP) to understand user queries.
+✅ Retrieves claim status from the blockchain and cross-verifies with ABDM records.
+✅ Facilitates real-time interaction between users and the fraud detection process.
+
+2️⃣ Medical Data Fetcher AI uAgent 📡
+Purpose: A decentralized agent that securely fetches user medical history from ABDM APIs to validate insurance claims.
+How it Works:
+✅ Connects to ABDM via secure API calls.
+✅ Cross-checks medical records with insurance claims.
+✅ Ensures privacy-first data retrieval using Fetch.AI’s agent coordination.
 
 ## 🔍 Project Overview
 
@@ -154,6 +169,7 @@ graph TD
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
+| **AI Agents**      | Fetch.AI uAgents, Agentverse | AI-powered claim verification and fraud detection |
 | **Frontend** | React.js, Material UI | Insurer dashboard and admin interfaces |
 | **Backend** | Node.js, Express, Python (AI) | API handling, business logic, AI processing |
 | **Blockchain** | Hyperledger Fabric, Ethereum | Smart contracts, immutable claim records |
@@ -205,14 +221,14 @@ graph TD
 > A traveler experiences a flight delay of over 3 hours and is eligible for compensation under their travel insurance policy.
 
 **Process Flow:**
-1. Flight delay detected through airline API integration
-2. System automatically identifies affected policyholders
-3. Policy terms verified against delay conditions
-4. Proactive notification sent to policyholder
-5. Claim pre-approved without requiring manual submission
-6. Compensation amount calculated based on policy terms
-7. Funds transferred instantly via UPI
-8. Digital receipt and settlement details provided
+
+1. System automatically identifies affected policyholders
+2. Policy terms verified against delay conditions
+3. Proactive notification sent to policyholder
+4. Claim pre-approved without requiring manual submission
+5. Compensation amount calculated based on policy terms
+6. Funds transferred instantly via UPI
+7. Digital receipt and settlement details provided
 
 **Key Metrics:**
 - Claim initiation: Automatic vs. manual submission
