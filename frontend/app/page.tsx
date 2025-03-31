@@ -9,6 +9,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <LandingHeader />
+      <ChatbotWidget />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#fa6724]/10 to-[#07a6ec]/10 py-20 md:py-32">
@@ -221,8 +222,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <ChatbotWidget />
     </div>
   )
 }

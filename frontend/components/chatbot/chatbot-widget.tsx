@@ -6,39 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Send, X, Mic, Maximize2, Minimize2, Brain } from "lucide-react"
-import { GoogleGenerativeAI } from "@google/generative-ai"
-
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI("AIzaSyD7Lo4tZk7V3iwZ0XsutrjZEEwYqqVBr40")
-
-// Global chat history array
-let chatHistory: { role: 'user' | 'chatbot'; content: string }[] = [];
-
-const SYSTEM_PROMPT = `You are Claim Saathi, an AI assistant for Swift Claim - an insurance claims processing platform.
-
-Your personality:
-- Friendly and empathetic
-- Professional but approachable
-- Expert in insurance claims
-- Uses simple language, avoiding jargon
-- Keeps responses concise (2-3 sentences max)
-
-Your capabilities:
-- Guide users through claim filing process
-- Explain insurance terms simply
-- Check claim status
-- Provide policy information
-- Help with document requirements
-- Offer claim processing estimates
-
-When responding:
-1. Be empathetic to user concerns
-2. Give clear, actionable steps
-3. Use positive language
-4. Maintain a helpful tone
-5. If unsure, ask for clarification
-
-Current conversation context: Insurance claims assistance`
+import { AgentverseService } from "@/lib/agentverse-service"
 
 // Claim Saathi moods with corresponding images
 const MOODS = {
@@ -61,6 +29,7 @@ type Message = {
 }
 
 export default function ChatbotWidget() {
+  console.log("ChatbotWidget rendering...");
   const [isOpen, setIsOpen] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [message, setMessage] = useState("")
@@ -75,6 +44,22 @@ export default function ChatbotWidget() {
       mood: "happy"
     }
   ])
+  const agentService = useRef<AgentverseService | null>(null)
+
+  // Initialize Agentverse service
+  useEffect(() => {
+    console.log("Initializing Agentverse service...");
+    agentService.current = new AgentverseService();
+    agentService.current.initialize().catch(error => {
+      console.error("Error initializing Agentverse service:", error);
+    });
+
+    return () => {
+      if (agentService.current) {
+        agentService.current.cleanup().catch(console.error);
+      }
+    };
+  }, []);
 
   // Auto scroll to bottom on new messages
   useEffect(() => {
@@ -83,65 +68,8 @@ export default function ChatbotWidget() {
     }
   }, [messages])
 
-  const getMoodFromContent = (content: string): keyof typeof MOODS => {
-    const lowerContent = content.toLowerCase()
-    if (lowerContent.includes("sorry") || lowerContent.includes("unfortunately")) return "grumpy"
-    if (lowerContent.includes("great") || lowerContent.includes("approved")) return "excited"
-    if (lowerContent.includes("help") || lowerContent.includes("guide")) return "winking"
-    if (lowerContent.includes("error") || lowerContent.includes("invalid")) return "angry"
-    if (lowerContent.includes("processing") || lowerContent.includes("checking")) return "neutral"
-    if (lowerContent.includes("success") || lowerContent.includes("completed")) return "dancing"
-    return "happy"
-  }
-
-  // Function to process chat messages with context
-  const processChatMessage = async (newMessage: string) => {
-    // Construct the context string by joining previous messages
-    let contextString = "";
-    for (const msg of chatHistory) {
-      contextString += `${msg.role}: ${msg.content}\n`;
-    }
-
-    // Prepend the context to the new message
-    const messageWithContext = contextString + `user: ${newMessage}`;
-    console.log("Full message with context:", messageWithContext); // For debugging
-
-    return await generateResponse(messageWithContext);
-  }
-
-  const generateResponse = async (messageWithContext: string) => {
-    try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
-      
-      const prompt = `${SYSTEM_PROMPT}\n\n${messageWithContext}\n\nClaim Saathi:`
-
-      const result = await model.generateContent(prompt)
-      const text = result.response.text()
-      console.log("Gemini Response:", text) // Debug log
-      
-      // Add bot message to chat history
-      chatHistory.push({ role: 'chatbot', content: text });
-
-      return {
-        content: text,
-        mood: getMoodFromContent(text)
-      }
-    } catch (error) {
-      console.error("Error generating response:", error)
-      const errorMessage = "I'm having trouble connecting right now. Please try again in a moment.";
-      chatHistory.push({ role: 'chatbot', content: errorMessage });
-      return {
-        content: errorMessage,
-        mood: "confused" as const
-      }
-    }
-  }
-
   const handleSendMessage = async () => {
-    if (!message.trim()) return
-
-    // Add user message to chat history
-    chatHistory.push({ role: 'user', content: message });
+    if (!message.trim() || !agentService.current) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -154,19 +82,33 @@ export default function ChatbotWidget() {
     setMessage("")
     setIsTyping(true)
 
-    // Process message with context and generate response
-    const response = await processChatMessage(message)
-    
-    const botMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      content: response.content,
-      sender: "bot",
-      timestamp: new Date(),
-      mood: response.mood
-    }
+    try {
+      console.log("Sending message to agent...");
+      const response = await agentService.current.sendMessage(message)
+      console.log("Received response from agent:", response);
+      
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: response.content,
+        sender: "bot",
+        timestamp: new Date(response.metadata.timestamp),
+        mood: response.metadata.mood as keyof typeof MOODS || "happy"
+      }
 
-    setMessages((prev) => [...prev, botMessage])
-    setIsTyping(false)
+      setMessages((prev) => [...prev, botMessage])
+    } catch (error) {
+      console.error("Error sending message:", error)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm having trouble connecting right now. Please try again in a moment.",
+        sender: "bot",
+        timestamp: new Date(),
+        mood: "confused"
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsTyping(false)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -177,9 +119,13 @@ export default function ChatbotWidget() {
   }
 
   if (!isOpen) {
+    console.log("Rendering closed chatbot button");
     return (
       <Button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          console.log("Opening chatbot...");
+          setIsOpen(true);
+        }}
         className="fixed bottom-4 right-4 h-14 w-14 rounded-full bg-[#07a6ec] hover:bg-[#0696d7] shadow-lg"
       >
         <Brain className="h-6 w-6" />
@@ -187,6 +133,7 @@ export default function ChatbotWidget() {
     )
   }
 
+  console.log("Rendering open chatbot");
   return (
     <div
       className={`fixed bottom-4 right-4 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300 ${
@@ -227,7 +174,10 @@ export default function ChatbotWidget() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              console.log("Closing chatbot...");
+              setIsOpen(false);
+            }}
             className="hover:bg-white/10 text-white"
           >
             <X className="h-4 w-4" />
